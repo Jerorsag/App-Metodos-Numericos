@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Métodos Numéricos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">Métodos Numéricos</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="fas fa-calculator"></i> Calculadora</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/history"><i class="fas fa-history"></i> Historial</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card shadow">
+                    <div class="card-header bg-light">
+                        <h3 class="mb-0">Calculadora de Raíces de Ecuaciones</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="numeric-method-form">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="function" class="form-label">Función f(x):</label>
+                                    <input type="text" class="form-control" id="function" placeholder="Ejemplo: x**2 - 4" required>
+                                    <small class="text-muted">Utilice la sintaxis de Python (x**2 para x², sin(x) para seno, etc.)</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="method" class="form-label">Método Numérico:</label>
+                                    <select class="form-select" id="method" required>
+                                        <option value="">Seleccione un método</option>
+                                        <option value="bisection">Bisección</option>
+                                        <option value="false_position">Falsa Posición</option>
+                                        <option value="fixed_point">Punto Fijo</option>
+                                        <option value="newton_raphson">Newton-Raphson</option>
+                                        <option value="secant">Secante</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Campos dinámicos según el método seleccionado -->
+                            <div id="method-params">
+                                <!-- Aquí se cargarán dinámicamente los campos según el método -->
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="tolerance" class="form-label">Tolerancia:</label>
+                                    <input type="number" class="form-control" id="tolerance" value="0.000001" step="0.000001" min="0">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="max_iterations" class="form-label">Máximo de Iteraciones:</label>
+                                    <input type="number" class="form-control" id="max_iterations" value="100" min="1" max="1000">
+                                </div>
+                            </div>
+
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-calculator"></i> Calcular</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resultados -->
+        <div id="results-section" class="mt-4" style="display: none;">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Resultados</h3>
+                    <button id="back-button" class="btn btn-light btn-sm"><i class="fas fa-arrow-left"></i> Regresar</button>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4>Gráfica de la Función</h4>
+                                </div>
+                                <div class="card-body text-center">
+                                    <img id="plot-image" class="img-fluid" alt="Gráfica de la función">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4>Tabla de Iteraciones</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Iteración</th>
+                                                    <th>a</th>
+                                                    <th>b</th>
+                                                    <th>xr</th>
+                                                    <th>f(xr)</th>
+                                                    <th>Ea (%)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="results-table">
+                                                <!-- Aquí se cargarán los resultados -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="alert alert-success mt-3">
+                                        <strong>Raíz encontrada:</strong> <span id="root-value"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de error -->
+        <div class="modal fade" id="error-modal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">Error</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="error-message"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
